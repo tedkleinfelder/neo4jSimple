@@ -1,0 +1,5 @@
+A simple node.js-based module for use with neo4j's REST API. It's designed 
+to be simple and maps directly to the neo4j REST API. There is nothing
+fancy about this.
+
+WARNING: NOT YET DONE.
