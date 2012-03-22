@@ -1,7 +1,17 @@
-var neo4jSimple = require('./neo4j-simple.js').neo4jSimple;
+/**
+ * @fileoverview A set of tests for the neo4jSimple object. When you execute this script,
+ * the tests will all execute and, if there are no errors, the process exits with 0,
+ * the exit value is 1 otherwise.
+ *
+ * @author <a href="mailto:edmond.meinfelder@gmail.com">Edmond Meinfelder</a>
+ */
+var neo4jSimple = require('./neo4jSimple.js').neo4jSimple;
 var neo4j = new neo4jSimple();
 var async = require('async');
 
+/**
+ * Tests for getServiceRoot.
+ */
 function test_getServiceRoot(cb) {
     neo4j.getServiceRoot(function(err, serviceObj) {
         if (err) {
@@ -14,6 +24,9 @@ function test_getServiceRoot(cb) {
     });
 }
 
+/**
+ * Tests for createNode()
+ */
 function test_createNode(cb) {
     neo4j.createNode(function(err, id) {
         if (err) {
@@ -25,6 +38,9 @@ function test_createNode(cb) {
     });
 }
 
+/**
+ * Tests for createNodeWithProperties()
+ */
 function test_createNodeWithProperties(cb) {
     neo4j.createNodeWithProperties({wife:'Wilma', friend: 'Barney'}, function(err, id) {
         if (err) {
@@ -36,6 +52,9 @@ function test_createNodeWithProperties(cb) {
     });
 }
 
+/**
+ * Tests for getNode()
+ */
 function test_getNode(cb) {
     neo4j.getNode(10, function(err, id) {
         if (err) {
@@ -47,6 +66,9 @@ function test_getNode(cb) {
     });
 }
 
+/**
+ * Executes the testssequentially and handles the exit value.
+ */
 function do_tests() {
 
     async.series(
@@ -70,4 +92,4 @@ function do_tests() {
     );
 }
 
-do_tests();
+do_tests();     // Causes all the tests to run.
