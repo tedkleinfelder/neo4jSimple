@@ -6,7 +6,7 @@
  * @author <a href="mailto:edmond.meinfelder@gmail.com">Edmond Meinfelder</a>
  */
 var neo4jSimple = require('./neo4jSimple.js').neo4jSimple;
-var neo4j = new neo4jSimple();
+var neo4j;
 var async = require('async');
 
 /**
@@ -15,8 +15,7 @@ var async = require('async');
 function test_getServiceRoot(cb) {
     neo4j.getServiceRoot(function(err, serviceObj) {
         if (err) {
-            console.error('test_getServiceRoot: '+err);
-            cb(err);
+            cb('test_getServiceRoot: '+err);
             return;
         }
         // TODO: verify content in service root
@@ -70,7 +69,6 @@ function test_getNode(cb) {
  * Executes the testssequentially and handles the exit value.
  */
 function do_tests() {
-
     async.series(
         [
             test_getServiceRoot,
@@ -92,4 +90,17 @@ function do_tests() {
     );
 }
 
-do_tests();     // Causes all the tests to run.
+/**
+ * Create the neo4j object and run the test driver, do_tests()
+ */
+function main() {
+    neo4j = new neo4jSimple(function(err) {
+        if (err) {
+            console.error('Error creating neo4jSimple: '+err);
+            process.exit(1);
+        }
+        do_tests();
+    });
+}
+
+main();     // Causes all the tests to run.

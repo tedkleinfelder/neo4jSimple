@@ -16,13 +16,30 @@ var assert = require('assert');
  * Creates and sets up a new neo4jSimple object.
  * @constructor
  */
-function neo4jSimple() {
+function neo4jSimple(cb) {
 
     this.protocol = 'http';
     this.host = 'localhost';
     this.port = 7474;
     this.baseUri = this.protocol+'://'+this.host+((this.port)?(':'+this.port):'');
     this.serviceRoot;
+    var self = this;
+
+    this.getServiceRoot(function(err, obj) {
+        if (err) {
+            if (cb)
+                cb(err);
+            return;
+        }
+
+        assert.ok(self.serviceRoot !== undefined);
+        assert.ok(self.serviceRoot.node);
+        assert.ok(typeof self.serviceRoot.node === 'string');
+        assert.ok(self.serviceRoot.node.length > 0);
+        if (cb) {
+            cb();
+        }
+    });
 }
 
 /**
@@ -35,8 +52,14 @@ function neo4jSimple() {
  * and the second param is the service object.
  */
 neo4jSimple.prototype.getServiceRoot = function(cb) {
+
+    if (this.serviceRoot !== undefined) {
+       cb(null, this.serviceRoot);
+       return;
+    }
+
     var uri = this.baseUri + '/db/data/';
-    var self = this;
+    var self = this;    // this won't mean anything in the request cb
 
     request.get(uri, function(err, resp, body) {
         if (err) {
@@ -46,9 +69,13 @@ neo4jSimple.prototype.getServiceRoot = function(cb) {
 
         //console.log(body);
         self.serviceRoot = JSON.parse(body);
+        assert.ok(self.serviceRoot !== undefined);
         assert.ok(typeof self.serviceRoot == 'object');
-        //console.log('serviceRoot: '+util.inspect(serviceRoot));
-        cb(null, body);
+        assert.ok(self.serviceRoot.node !== undefined);
+        assert.ok(typeof self.serviceRoot.node == 'string');
+        assert.ok(self.serviceRoot.node.length > 0);
+        //console.log('serviceRoot: '+util.inspect(self.serviceRoot));
+        cb(null, self.serviceRoot);
     });
 };
 
@@ -81,7 +108,11 @@ neo4jSimple.prototype.createNodeWithProperties = function(properties, cb) {
         return;
     }
 
-    var uri = this.baseUri+ '/db/data/node';
+    assert.ok(this.serviceRoot);
+    assert.ok(this.serviceRoot.node);
+
+    // var uri = this.baseUri+ '/db/data/node';
+    var uri = this.serviceRoot.node;
     var options = {
         uri: uri,
         Accept: 'application/json',
@@ -130,7 +161,8 @@ neo4jSimple.prototype.getNode = function(id, cb) {
         return;
     }
 
-    var uri = this.baseUri + '/db/data/node/'+id;
+    //var uri = this.baseUri + '/db/data/node/'+id;
+    var uri = this.serviceRoot.node+'/'+id;
 
     var options = {
         uri: uri,
@@ -186,7 +218,8 @@ neo4jSimple.prototype.deleteNode = function(id, cb) {
         return;
     }
 
-    var uri = this.baseUri + '/db/data/node/'+id;
+    //var uri = this.baseUri + '/db/data/node/'+id;
+    var uri = this.serviceRoot.node+'/'+id;
 
     var options = {
         uri: uri,
@@ -232,7 +265,8 @@ neo4jSimple.prototype.getRelationshipById = function(id, cb) {
         return;
     }
 
-    var uri = this.baseUri + '/db/data/node/relationship/'+id;
+    //var uri = this.baseUri + '/db/data/node/relationship/'+id;
+    var uri = this.serviceRoot.node+'/relationship/'+id;
 
     var options = {
         uri: uri,
@@ -288,10 +322,11 @@ neo4jSimple.prototype.createRelationship = function(srcId, destId, relationship,
         return;
     }
 
-    var uri = this.baseUri+'/db/data/node/'+srcId+'/relationships';
+    //var uri = this.baseUri+'/db/data/node/'+srcId+'/relationships';
+    var uri = this.serviceRoot.node+'/'+srcId+'/relationships';
 
     var postBody = {
-        to: baseUri+'/db/data/node/'+destId,
+        to: thise.serviceRoot.node+'/'+destId,
         type: relationship,
         data: data
     };
