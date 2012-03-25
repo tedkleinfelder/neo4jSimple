@@ -36,9 +36,9 @@ function neo4jSimple(cb) {
         assert.ok(self.serviceRoot.node);
         assert.ok(typeof self.serviceRoot.node === 'string');
         assert.ok(self.serviceRoot.node.length > 0);
-        if (cb) {
+
+        if (cb)
             cb();
-        }
     });
 }
 
@@ -67,14 +67,16 @@ neo4jSimple.prototype.getServiceRoot = function(cb) {
             return;
         }
 
-        //console.log(body);
         self.serviceRoot = JSON.parse(body);
-        assert.ok(self.serviceRoot !== undefined);
-        assert.ok(typeof self.serviceRoot == 'object');
-        assert.ok(self.serviceRoot.node !== undefined);
-        assert.ok(typeof self.serviceRoot.node == 'string');
-        assert.ok(self.serviceRoot.node.length > 0);
         //console.log('serviceRoot: '+util.inspect(self.serviceRoot));
+        assert.ok(self.serviceRoot !== undefined);
+        assert.ok(typeof self.serviceRoot === 'object');
+        assert.ok(self.serviceRoot.node !== undefined);
+        assert.ok(typeof self.serviceRoot.node === 'string');
+        assert.ok(self.serviceRoot.node.length > 0);
+        self.serviceRoot.relationship = self.serviceRoot.relationship_types.replace(/\/types$/, '');
+        assert.ok(self.serviceRoot.relationship !== undefined);
+        assert.ok(typeof self.serviceRoot.relationship === 'string');
         cb(null, self.serviceRoot);
     });
 };
@@ -91,6 +93,24 @@ neo4jSimple.prototype.createNode = function(cb) {
         cb(err, id, node);
     });
 };
+
+function getIdFromNode(node) {
+    assert.ok(typeof node === 'object');
+    assert.ok(node.self !== undefined);
+    assert.ok(typeof node.self === 'string');
+
+    var parts = node.self.split('/');   // split the URL into parts by te '/'
+    assert.ok(parts && parts.length);   // ensure we got something
+
+    var id = parts[parts.length-1];
+    assert.ok(id !== undefined);
+    id = parseInt(id);
+    assert.ok(id !== undefined);
+    assert.ok(typeof id === 'number');
+    //console.log('id: '+id);
+    assert.ok(id >= 1);
+    return id;
+}
 
 /**
  * creatNodeWithProperties creates a node with properties.
@@ -111,10 +131,8 @@ neo4jSimple.prototype.createNodeWithProperties = function(properties, cb) {
     assert.ok(this.serviceRoot);
     assert.ok(this.serviceRoot.node);
 
-    // var uri = this.baseUri+ '/db/data/node';
-    var uri = this.serviceRoot.node;
     var options = {
-        uri: uri,
+        uri: this.serviceRoot.node,
         Accept: 'application/json',
         json: properties
     };
@@ -131,12 +149,7 @@ neo4jSimple.prototype.createNodeWithProperties = function(properties, cb) {
         }
 
         assert.ok(typeof body === 'object');
-
-        // get the node id created
-        assert.ok(body.self !== undefined);
-        var parts = body.self.split('/');
-        assert.ok(parts && parts.length);
-        var id = parts[parts.length-1];
+        var id = getIdFromNode(body);
         cb(null, id, body);
     });
 };
@@ -161,11 +174,8 @@ neo4jSimple.prototype.getNode = function(id, cb) {
         return;
     }
 
-    //var uri = this.baseUri + '/db/data/node/'+id;
-    var uri = this.serviceRoot.node+'/'+id;
-
     var options = {
-        uri: uri,
+        uri: this.serviceRoot.node+'/'+id,
         Accept: 'application/json'
     };
 
@@ -187,12 +197,7 @@ neo4jSimple.prototype.getNode = function(id, cb) {
 
         var node = JSON.parse(body);
         assert.ok(typeof node === 'object');
-
-        // get the node id created
-        assert.ok(node.self !== undefined);
-        var parts = node.self.split('/');
-        assert.ok(parts && parts.length);
-        var newId = parts[parts.length-1];
+        var newId = getIdFromNode(node);
         assert.ok(newId == id);
         cb(null, id, node);
     });
@@ -206,7 +211,7 @@ neo4jSimple.prototype.getNode = function(id, cb) {
  * @param {Function} cb A callback where the first param is an an error 
  * and the second param is the object id of the node deleted.
  */
-neo4jSimple.prototype.deleteNode = function(id, cb) {
+neo4jSimple.prototype.deleteNodeById = function(id, cb) {
 
     if (typeof id !== 'number') {
         cb('id needs to be a number');
@@ -218,11 +223,8 @@ neo4jSimple.prototype.deleteNode = function(id, cb) {
         return;
     }
 
-    //var uri = this.baseUri + '/db/data/node/'+id;
-    var uri = this.serviceRoot.node+'/'+id;
-
     var options = {
-        uri: uri,
+        uri: this.serviceRoot.node+'/'+id,
         Accept: 'application/json'
     };
 
@@ -265,11 +267,8 @@ neo4jSimple.prototype.getRelationshipById = function(id, cb) {
         return;
     }
 
-    //var uri = this.baseUri + '/db/data/node/relationship/'+id;
-    var uri = this.serviceRoot.node+'/relationship/'+id;
-
     var options = {
-        uri: uri,
+        uri: this.serviceRoot.relationship+'/'+id,
         Accept: 'application/json'
     };
 
@@ -281,11 +280,10 @@ neo4jSimple.prototype.getRelationshipById = function(id, cb) {
         }
 
         if (resp.statusCode >= 300 || resp.statusCode < 200) {
-            cb('DELETE failed with '+resp.statusCode, resp.statusCode);
+            cb('GET failed with '+resp.statusCode, resp.statusCode);
             return;
         }
 
-        console.log('body type: '+typeof body);
         var relationship = JSON.parse(body);
         assert.ok(typeof relationship == 'object');
         cb(null, id, relationship);
@@ -300,14 +298,14 @@ neo4jSimple.prototype.getRelationshipById = function(id, cb) {
  * @param {String} relationship The name of the relationship.
  * @param {Object} data An object whose key/values will become properties on the relationship.
  */
-neo4jSimple.prototype.createRelationship = function(srcId, destId, relationship, data) {
+neo4jSimple.prototype.createRelationship = function(srcId, destId, relationship, data, cb) {
 
     if (typeof srcId !== 'number') {
         cb('srcId needs to be a number');
         return;
     }
 
-    if (typeof destid !== 'number') {
+    if (typeof destId !== 'number') {
         cb('destId needs to be a number');
         return;
     }
@@ -322,17 +320,14 @@ neo4jSimple.prototype.createRelationship = function(srcId, destId, relationship,
         return;
     }
 
-    //var uri = this.baseUri+'/db/data/node/'+srcId+'/relationships';
-    var uri = this.serviceRoot.node+'/'+srcId+'/relationships';
-
     var postBody = {
-        to: thise.serviceRoot.node+'/'+destId,
+        to: this.serviceRoot.node+'/'+destId,
         type: relationship,
         data: data
     };
 
     var options = {
-        uri: uri,
+        uri: this.serviceRoot.node+'/'+srcId+'/relationships',
         Accept: 'application/json',
         json: postBody
     };
@@ -349,19 +344,121 @@ neo4jSimple.prototype.createRelationship = function(srcId, destId, relationship,
             return;
         }
 
-        console.log('body type: '+typeof body);
         if (typeof body !== 'object') {
             cb('body is not an object');
             return;
         }
 
-        assert.ok(body.self !== undefined);
-        var parts = body.self.split('/');
-        assert.ok(parts && parts.length);
-        var newId = parts[parts.length-1];
-        assert.ok(typeof newId == 'number');
+        var id = getIdFromNode(body);
         cb(null, id, body);
     });
 };
+
+neo4jSimple.prototype.deleteRelationshipById = function(id, cb) {
+    if (typeof id !== 'number') {
+        cb('id id must be a number');
+        return;
+    }
+
+    if (id < 1) {
+        cb('Valid ids are positive non-zero integers.');
+        return;
+    }
+
+    var options = {
+        uri: this.serviceRoot.relationship+'/'+id,
+        Accept: 'application/json',
+    };
+
+    request.del(options, function(err, resp, body) {
+        if (err) {
+            cb(err);
+            return;
+        }
+
+        if (resp.statusCode !== 204) {
+            cb('DELETE failed with '+resp.statusCode, resp.statusCode);
+            return;
+        }
+        cb();
+    });
+};
+
+neo4jSimple.prototype.getRelationshipProperties = function(id, cb) {
+    if (typeof id !== 'number') {
+        cb('id id must be a number');
+        return;
+    }
+
+    if (id < 1) {
+        cb('Valid ids are positive non-zero integers.');
+        return;
+    }
+
+    var options = {
+        uri: this.serviceRoot.relationship+'/'+id+'/properties',
+        Accept: 'application/json',
+    };
+
+    request.get(options, function(err, resp, body) {
+        if (err) {
+            cb(err);
+            return;
+        }
+
+        if (resp.statusCode !== 200) {
+            cb('GET failed with '+resp.statusCode, resp.statusCode);
+            return;
+        }
+        
+        var properties = JSON.parse(body);
+        assert.ok(properties !== undefined);
+
+        if (typeof properties !== 'object') {
+            cb('Body returned is not an object.');
+            return;
+        }
+
+        cb(null, id, properties);
+    });
+};
+
+neo4jSimple.prototype.setRelationshipProperties = function(id, properties, cb) {
+    if (typeof id !== 'number') {
+        cb('id id must be a number');
+        return;
+    }
+
+    if (id < 1) {
+        cb('Valid ids are positive non-zero integers.');
+        return;
+    }
+
+    if (typeof properties !== 'object') {
+        cb('Properties needs to be an object.');
+        return;
+    }
+
+    var options = {
+        uri: this.serviceRoot.relationship+'/'+id+'/properties',
+        Accept: 'application/json',
+        json: properties
+    };
+
+    request.put(options, function(err, resp, body) {
+        if (err) {
+            cb(err);
+            return;
+        }
+
+        if (resp.statusCode !== 204) {
+            cb('PUT failed with '+resp.statusCode, resp.statusCode);
+            return;
+        }
+        
+        cb(null, id);
+    });
+};
+
 
 exports.neo4jSimple = neo4jSimple;
