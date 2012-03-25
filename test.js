@@ -282,115 +282,52 @@ function test_setRelationshipProperties(cb) {
     });
 }
 
-function test_getSingleRelationshipProperty(cb) {
-    // FIXME: create relationship
-    neo4j.getSingleRelationshipProperty(1, function(err, id, relProperties) {
-        if (err) {
-            cb('err');
-            return;
-        }
-        // FIXME: delete said relationship
-        cb();
-    });
-}
-
-function test_setSingleRelationshipProperty(cb) {
-    // FIXME: create relationship
-    neo4j.setSingleRelationshipProperty(1, propName, propValue, function(err) {
-        if (err) {
-            cb('err');
-            return;
-        }
-        // FIXME: delete said relationship
-        cb();
-    });
-}
-
-function test_getAllRelationships(cb) {
-    // FIXME: create relationship
-    neo4j.getAllRelationships(nodeId, function(err, nodeRelationships) {
-        if (err) {
-            cb('err');
-            return;
-        }
-        // FIXME: delete said relationship
-        cb();
-    });
-}
-
-function test_getAllIncomingRelationships(cb) {
-    // FIXME: create relationship
-    neo4j.getIncomingAllRelationships(nodeId, function(err, nodeRelationships) {
-        if (err) {
-            cb('err');
-            return;
-        }
-        // FIXME: delete said relationship
-        cb();
-    });
-}
-
-function test_getAllOutgoingRelationships(cb) {
-    // FIXME: create relationship
-    neo4j.getAllOutgoingRelationships(nodeId, function(err, nodeRelationships) {
-        if (err) {
-            cb('err');
-            return;
-        }
-        // FIXME: delete said relationship
-        cb();
-    });
-}
-
-function test_getTypedRelationships(cb) {
-    // FIXME: create relationship
-    neo4j.getTypedRelationships(relationshipNames, function(err, relationshipNames, nodeRelationships) {
-        if (err) {
-            cb('err');
-            return;
-        }
-        // FIXME: delete said relationship
-        cb();
-    });
-}
-
-
 function test_getRelationshipTypes(cb) {
-            cb('err');
+    neo4j.createNode(function(err, id1) {            // create a node!
+        if (err) {
+            cb('test_getRelationshipProperties 1: '+err);
+            return;
+        }
+        neo4j.createNode(function(err, id2) {            // create a node!
+            if (err) {
+                cb('test_getRelationshipProperties 2: '+err);
+                return;
+            }
+            neo4j.createRelationship(id1, id2, 'test', {key:"value"}, function(err, rel_id, relationship) {
+                if (err) {
+                    cb('test_getRelationshipProperties 3: '+err);
+                    return;
+                }
+                neo4j.createRelationship(id1, id2, 'test2', {key2:"value2"}, function(err, rel_id, relationship) {
+                    if (err) {
+                        cb('test_getRelationshipProperties 4: '+err);
+                        return;
+                    }
+                    neo4j.getRelationshipTypes(function(err, types) {
+                        if (err) {
+                            cb('test_getRelationshipProperties 4: '+err);
+                            return;
+                        }
+                        assert(types !== undefined);
+                        assert(typeof types === 'object');
+                        assert(types.length >= 2);
+                        neo4j.deleteRelationshipById(rel_id, function(err, err_id) {
+                            if (err) {
+                                cb('test_getRelationshipProperties 5: '+err);
+                                return;
+                            }
+                            cb();
+                        });
+                    });
+                });
+            });
+        });
+    });
 }
 
-function test_getSetPropertyOnNode(cb) {
-            cb('err');
-}
 
-function test_updateNodeProperties(cb) {
-            cb('err');
-}
 
-function test_getNodeProperties(cb) {
-            cb('err');
-}
-
-function test_deleteAllNodeProperties(cb) {
-            cb('err');
-}
-
-function test_deleteNamedPropertyFromNode(cb) {
-            cb('err');
-}
-
-function test_updateRelationshipProperties(cb) {
-            cb('err');
-}
-
-function test_updateRelationshipProperties(cb) {
-            cb('err');
-}
-
-function test_removeRelationshipProperty(cb) {
-            cb('err');
-}
-
+////////////////////////////////////////////////////////////////////////////////
 
 
 /**
@@ -405,8 +342,9 @@ function do_tests() {
             test_getNode,
             test_deleteNode,
             test_Relationships,
-            test_getRelationshipProperties,
-            test_setRelationshipProperties
+            //test_getRelationshipProperties,
+            //test_setRelationshipProperties,
+            test_getRelationshipTypes
         ],
 
         // async callback
