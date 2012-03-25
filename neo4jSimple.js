@@ -108,7 +108,7 @@ function getIdFromNode(node) {
     assert.ok(id !== undefined);
     assert.ok(typeof id === 'number');
     //console.log('id: '+id);
-    assert.ok(id >= 1);
+    assert.ok(id >= 0);
     return id;
 }
 
@@ -360,7 +360,7 @@ neo4jSimple.prototype.deleteRelationshipById = function(id, cb) {
         return;
     }
 
-    if (id < 1) {
+    if (id < 0) {
         cb('Valid ids are positive non-zero integers.');
         return;
     }
@@ -390,7 +390,7 @@ neo4jSimple.prototype.getRelationshipProperties = function(id, cb) {
         return;
     }
 
-    if (id < 1) {
+    if (id < 0) {
         cb('Valid ids are positive non-zero integers.');
         return;
     }
@@ -429,7 +429,7 @@ neo4jSimple.prototype.setRelationshipProperties = function(id, properties, cb) {
         return;
     }
 
-    if (id < 1) {
+    if (id < 0) {
         cb('Valid ids are positive non-zero integers.');
         return;
     }
