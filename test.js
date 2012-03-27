@@ -11,6 +11,145 @@ var assert = require('assert');
 var util = require('util');
 var neo4j;
 
+var nodeHashName = {};
+var nodeHashId = {};
+
+var create_nodes = [
+    { name: "a" },
+    { name: "b" },
+    { name: "c" },
+    { name: "d" },
+    { name: "e" },
+    { name: "f" },
+];
+
+function testCreateNodes(cb) {
+    createNode("a", {}, function(err, id, name) {
+        if (err) { cb(err); return; }
+        createNode("b", {}, function(err, id, name) {
+            if (err) { cb(err); return; }
+            createNode("c", {}, function(err, id, name) {
+                if (err) { cb(err); return; }
+                createNode("d", {}, function(err, id, name) {
+                    if (err) { cb(err); return; }
+                    createNode("e", {}, function(err, id, name) {
+                        if (err) { cb(err); return; }
+                        createNode("f", {}, function(err, id, name) {
+                            if (err) { cb(err); return; }
+                            cb();
+                        });
+                    });
+                });
+            });
+        });
+    });
+}
+
+function createNode(name, properties, cb) {
+    if (typeof properties !== 'object') {
+        cb('properties must be an object');
+        return;
+    }
+
+    if (typeof name !== 'string' || name.length === 0) {
+        cb('name must be a non-zero length string.');
+        return;
+    }
+
+    properties.name = name;
+
+    neo4j.createNodeWithProperties(properties, function(err, id) {
+        if (err) {
+            cb('createNode 1: '+err);
+            return;
+        }
+
+        // verify id, get node with that id & verify properties
+        neo4j.getNode(id, function(err, id2, node) {
+            if (err) {
+                cb('createNode 2: '+err);
+                return;
+            }
+            assert.ok(typeof id2 === 'number');
+            assert.ok(id === id2);
+            assert.ok(typeof node === 'object');
+            assert.ok(typeof node.data === 'object');
+            assert.ok(node.data.name === name);
+
+            nodeHashName[name] = id;
+            nodeHashId[id] = name;
+
+            cb(null, id, name);
+        });
+    });
+}
+
+function testDeleteNodes(cb) {
+    deleteNode(nodeHashName.a, function(err, id) {
+        if (err) { cd(err); return; }
+        deleteNode(nodeHashName.b, function(err, id) {
+            if (err) { cd(err); return; }
+            deleteNode(nodeHashName.c, function(err, id) {
+                if (err) { cd(err); return; }
+                deleteNode(nodeHashName.d, function(err, id) {
+                    if (err) { cd(err); return; }
+                    deleteNode(nodeHashName.e, function(err, id) {
+                        if (err) { cd(err); return; }
+                        deleteNode(nodeHashName.f, function(err, id) {
+                            if (err) { cd(err); return; }
+                            cb();
+                        });
+                    });
+                });
+            });
+        });
+    });
+}
+
+function deleteNode(id, cb) {
+    if (typeof id === 'string')
+        id = nodeHashName[id];
+    if (typeof id !== 'number') {
+        cb('id must be a valid name or number');
+        return;
+    }
+
+    // delete the node
+    neo4j.deleteNodeById(id, function(err, id2) {
+        if (err) {
+            cb('deleteNode: '+err);
+            retrn;
+        }
+        assert.ok(typeof id2 === 'number');
+        assert.ok(id === id2);
+
+        var name = nodeHashId[id];
+        delete nodeHashId[id];
+        delete nodeHashName[name];
+
+        cb(null, id);
+        return;
+    });
+}
+
+function getNode(id, cb) {
+    if (typeof id === 'string')
+        id = nodeHashName[id];
+    if (typeof id !== 'number') {
+        cb('id must be a valid name or number');
+        return;
+    }
+
+    neo4j.getNode(id, function(err, id2, node) {       // get the node!
+        if (err) {
+            cb('getNode: '+err);
+            return;
+        }
+        cb(null, id2, node);
+        return;
+    });
+}
+
 /**
  * Tests for getServiceRoot.
  */
@@ -328,6 +467,8 @@ function test_getRelationshipTypes(cb) {
 
 
 ////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
 
 /**
@@ -336,6 +477,19 @@ function test_getRelationshipTypes(cb) {
 function do_tests() {
     async.series(
         [
+            // create node a,b,c,d,e,f
+            createNode(name, properties);
+            // create relationship a->b // store rel ids in hash "a:b"
+            // create relationship a->c
+            // create relationship c->d
+            // create relationship c->e
+            // create relationship e->f
+            // create index
+            // add all nodes to index
+            // query test for a node
+            // delete all relationships
+            // delete all nodes
+            // done!
             test_getServiceRoot,
             test_createNode,
             test_createNodeWithProperties,
