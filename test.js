@@ -13,6 +13,7 @@ var neo4j;
 
 var nodeHashName = {};
 var nodeHashId = {};
+var relationsList = [];
 
 var create_nodes = [
     { name: "a" },
@@ -84,6 +85,49 @@ function createNode(name, properties, cb) {
     });
 }
 
+function testCreateRelationships(cb) {
+    createRelationship("edge", nodeHashName['a'], nodeHashName['b'], {from:'a',to:'b'}, function(err, rel_id, rel) {
+        if (err) {
+            cb('createRelationship: '+err);
+            return;
+        }
+        createRelationship("edge", nodeHashName['a'], nodeHashName['c'], {from:'a',to:'c'}, function(err, rel_id, rel) {
+            if (err) {
+                cb('createRelationship: '+err);
+                return;
+            }
+            createRelationship("edge", nodeHashName['c'], nodeHashName['d'], {from:'c',to:'d'}, function(err, rel_id, rel) {
+                if (err) {
+                    cb('createRelationship: '+err);
+                    return;
+                }
+                createRelationship("edge", nodeHashName['c'], nodeHashName['e'], {from:'c',to:'e'}, function(err, rel_id, rel) {
+                    if (err) {
+                        cb('createRelationship: '+err);
+                        return;
+                    }
+                    createRelationship("edge", nodeHashName['e'], nodeHashName['f'], {from:'e',to:'e'}, function(err, rel_id, rel) {
+                        if (err) {
+                            cb('createRelationship: '+err);
+                            return;
+                        }
+                    });
+                });
+            });
+        });
+    });
+}
+
+function createRelationship(name, srcNodeId, dstNodeId, properties cb) {
+    neo4j.createRelationship(id1, id2, 'test', {key:"value"}, function(err, rel_id, relationship) {
+        if (err) {
+            cb('test_getRelationshipById 3: '+err);
+            return;
+        }
+        relationsList.push(rel_id);
+        cb(null, rel_id, relationship);
+    });
+}
 function testDeleteNodes(cb) {
     deleteNode(nodeHashName.a, function(err, id) {
         if (err) { cd(err); return; }
