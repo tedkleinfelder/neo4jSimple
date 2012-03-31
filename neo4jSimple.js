@@ -11,7 +11,6 @@
 var request = require('request');
 var util = require('util');
 var assert = require('assert');
-var qs = require('qs');
 
 /**
  * Creates and sets up a new neo4jSimple object.
@@ -444,7 +443,7 @@ neo4jSimple.prototype.deleteRelationshipById = function(id, cb) {
             cb('DELETE failed with '+resp.statusCode, resp.statusCode);
             return;
         }
-        cb();
+        cb(null, id);
     });
 };
 
@@ -748,7 +747,7 @@ neo4jSimple.prototype.addNodeToIndex = function(indexName, nodeId, key, value, c
 
     var config = {
         value: value,
-        uri: this.serviceRoot.node+'/'+nodeId;
+        uri: this.serviceRoot.node+'/'+nodeId,
         key: key
     };
 
@@ -786,13 +785,13 @@ neo4jSimple.prototype.addNodeToIndex = function(indexName, nodeId, key, value, c
 neo4jSimple.prototype.removeIndexEntriesWithNodeId = function(indexName, nodeId, cb) {
     this.removeIndexEntriesWithNodeIdAndKeyValue(indexName, nodeId, null, null, function(err, nodeId) {
         cb(err, nodeId);
-    }):
+    });
 };
 
 neo4jSimple.prototype.removeIndexEntriesWithNodeIdAndKey = function(indexName, nodeId, keyName, cb) {
     this.removeIndexEntriesWithNodeIdAndKeyValue(indexName, nodeId, keyName, null, function(err, nodeId) {
         cb(err, nodeId, keyName);
-    }):
+    });
 };
 
 neo4jSimple.prototype.removeIndexEntriesWithNodeIdAndKeyValue = function(indexName, nodeId, keyName, value, cb) {
@@ -871,7 +870,7 @@ neo4jSimple.prototype.findNodeByExactMatch = function(indexName, keyName, value,
 
     // FIXME: ALL URIs have to be escaped
     var options = {
-        uri: this.serviceRoot.node_index+'/'+indexName+'/'+keyName+'/'+value;
+        uri: this.serviceRoot.node_index+'/'+indexName+'/'+keyName+'/'+value,
         Accept: 'application/json'
     };
 
@@ -911,7 +910,7 @@ neo4jSimple.prototype.findNodeByQuery = function(indexName, queryStr, cb) {
     queryStr = escape(queryStr);
 
     var options = {
-        uri: this.serviceRoot.node_index+'/'+indexName+'?'+queryStr;
+        uri: this.serviceRoot.node_index+'/'+indexName+'?'+queryStr,
         Accept: 'application/json'
     };
     var self = this;
