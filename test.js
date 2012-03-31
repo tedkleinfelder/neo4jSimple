@@ -111,6 +111,7 @@ function testCreateRelationships(cb) {
                             cb('createRelationship: '+err);
                             return;
                         }
+                        cb();
                     });
                 });
             });
@@ -118,8 +119,8 @@ function testCreateRelationships(cb) {
     });
 }
 
-function createRelationship(name, srcNodeId, dstNodeId, properties cb) {
-    neo4j.createRelationship(id1, id2, 'test', {key:"value"}, function(err, rel_id, relationship) {
+function createRelationship(name, srcNodeId, dstNodeId, properties, cb) {
+    neo4j.createRelationship(srcNodeId, dstNodeId, name, properties, function(err, rel_id, relationship) {
         if (err) {
             cb('test_getRelationshipById 3: '+err);
             return;
@@ -128,6 +129,7 @@ function createRelationship(name, srcNodeId, dstNodeId, properties cb) {
         cb(null, rel_id, relationship);
     });
 }
+
 function testDeleteNodes(cb) {
     deleteNode(nodeHashName.a, function(err, id) {
         if (err) { cd(err); return; }
@@ -143,6 +145,40 @@ function testDeleteNodes(cb) {
                             if (err) { cd(err); return; }
                             cb();
                         });
+                    });
+                });
+            });
+        });
+    });
+}
+
+function testDeleteRelationships(cb) {
+    neo4j.deleteRelationshipById(relationsList[0], function(err, id) {
+        if (err) {
+            cb(err);
+            return;
+        }
+        neo4j.deleteRelationshipById(relationsList[1], function(err, id) {
+            if (err) {
+                cb(err);
+                return;
+            }
+            neo4j.deleteRelationshipById(relationsList[2], function(err, id) {
+                if (err) {
+                    cb(err);
+                    return;
+                }
+                neo4j.deleteRelationshipById(relationsList[3], function(err, id) {
+                if (err) {
+                        cb(err);
+                        return;
+                    }
+                    neo4j.deleteRelationshipById(relationsList[4], function(err, id) {
+                        if (err) {
+                            cb(err);
+                            return;
+                        }
+                        cb();
                     });
                 });
             });
@@ -522,7 +558,11 @@ function do_tests() {
     async.series(
         [
             // create node a,b,c,d,e,f
-            createNode(name, properties);
+            testCreateNodes,
+            testCreateRelationships,
+            testDeleteRelationships,
+            testDeleteNodes,
+            //createNode(name, properties);
             // create relationship a->b // store rel ids in hash "a:b"
             // create relationship a->c
             // create relationship c->d
