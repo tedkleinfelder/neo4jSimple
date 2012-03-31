@@ -18,7 +18,9 @@
     "scripts" : {"test" : "node ./test.js"},
     "engines" : { "node" : ">=v0.5.0" },
     "dependencies" : {
-        "async" : "0.1.18",
         "request" : "2.9.153"
+    },
+    "devDependencies": {
+        "async" : "0.1.18"
     }
 }
