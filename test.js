@@ -14,6 +14,7 @@ var neo4j;
 var nodeHashName = {};
 var nodeHashId = {};
 var relationsList = [];
+var IndexName = 'TestIndex';
 
 var create_nodes = [
     { name: "a" },
@@ -106,7 +107,7 @@ function testCreateRelationships(cb) {
                         cb('createRelationship: '+err);
                         return;
                     }
-                    createRelationship("edge", nodeHashName['e'], nodeHashName['f'], {from:'e',to:'e'}, function(err, rel_id, rel) {
+                    createRelationship("edge", nodeHashName['e'], nodeHashName['f'], {from:'e',to:'f'}, function(err, rel_id, rel) {
                         if (err) {
                             cb('createRelationship: '+err);
                             return;
@@ -227,6 +228,80 @@ function getNode(id, cb) {
         }
         cb(null, id2, node);
         return;
+    });
+}
+
+function verifyNodesExist(cb) {
+    getNode('a', function(err, id, node) {
+         if (err) {
+             cb(err);
+             return;
+         }
+        getNode('b', function(err, id, node) {
+            if (err) {
+                cb(err);
+                return;
+            }
+            getNode('c', function(err, id, node) {
+                if (err) {
+                    cb(err);
+                    return;
+                }
+                getNode('d', function(err, id, node) {
+                    if (err) {
+                        cb(err);
+                        return;
+                    }
+                    getNode('e', function(err, id, node) {
+                        if (err) {
+                            cb(err);
+                            return;
+                        }
+                        getNode('f', function(err, id, node) {
+                            if (err) {
+                                cb(err);
+                                return;
+                            }
+                            cb();
+                        });
+                    });
+                });
+            });
+        });
+    });
+}
+
+function verifyRelationships(cb) {
+    neo4j.getRelationshipById(relationsList[0], function(err, rel_id2, relationship) {
+        if (err) {
+            cb('verifyRelationships error: '+err);
+            return;
+        }
+        neo4j.getRelationshipById(relationsList[1], function(err, rel_id2, relationship) {
+            if (err) {
+                cb('verifyRelationships error: '+err);
+                return;
+            }
+            neo4j.getRelationshipById(relationsList[2], function(err, rel_id2, relationship) {
+                if (err) {
+                    cb('verifyRelationships error: '+err);
+                    return;
+                }
+                neo4j.getRelationshipById(relationsList[3], function(err, rel_id2, relationship) {
+                    if (err) {
+                        cb('verifyRelationships error: '+err);
+                        return;
+                    }
+                    neo4j.getRelationshipById(relationsList[4], function(err, rel_id2, relationship) {
+                        if (err) {
+                            cb('verifyRelationships error: '+err);
+                            return;
+                        }
+                        cb();
+                    });
+                });
+            });
+        });
     });
 }
 
@@ -544,6 +619,44 @@ function test_getRelationshipTypes(cb) {
     });
 }
 
+function testCreateNodeIndex(cb) {
+    neo4j.createNodeIndex(IndexName, {}, function(err, name, config, body) {
+        if (err) {
+            //cb('testCreateNodeIndex err: '+err);
+            cb();
+            return;
+        }
+        //console.log('Index: '+name+' - '+util.inspect(body));
+        cb();
+    });
+}
+
+function testDeleteNodeIndex(cb) {
+    neo4j.deleteNodeIndex(IndexName, function(err) {
+        if ('testCreateNodeIndex err 2: '+err) {
+            cb(err);
+            return;
+        }
+        cb();
+    });
+}
+
+function testAddNodesToIndex(cb) {
+
+    neo4j.addNodeToIndex(IndexName, nodeHashName['a'], 'node', 'a', function(err, id, result) {
+        if (err) {
+            cb('testAddNodesToIndex: '+err);
+            return;
+        }
+        cb();
+    });
+}
+
+
+
+
+
+
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -557,9 +670,14 @@ function test_getRelationshipTypes(cb) {
 function do_tests() {
     async.series(
         [
-            // create node a,b,c,d,e,f
+            test_getServiceRoot,
             testCreateNodes,
             testCreateRelationships,
+            verifyNodesExist,
+            verifyRelationships,
+            testCreateNodeIndex,
+            testAddNodesToIndex,
+            testDeleteNodeIndex,
             testDeleteRelationships,
             testDeleteNodes,
             //createNode(name, properties);
@@ -574,15 +692,14 @@ function do_tests() {
             // delete all relationships
             // delete all nodes
             // done!
-            test_getServiceRoot,
-            test_createNode,
-            test_createNodeWithProperties,
-            test_getNode,
-            test_deleteNode,
-            test_Relationships,
+            //test_createNode,
+            //test_createNodeWithProperties,
+            //test_getNode,
+            //test_deleteNode,
+            //test_Relationships,
             //test_getRelationshipProperties,
             //test_setRelationshipProperties,
-            test_getRelationshipTypes
+            //test_getRelationshipTypes
         ],
 
         // async callback
