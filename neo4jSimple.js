@@ -619,7 +619,7 @@ neo4jSimple.prototype.createNodeIndex = function(indexName, config, cb) {
     }
 
     if (typeof config !== 'object') {
-        cb('propertyName must be a string');
+        cb('config must be an object');
         return;
     }
 
@@ -627,11 +627,15 @@ neo4jSimple.prototype.createNodeIndex = function(indexName, config, cb) {
         cb('Callback must be a function');
         return;
     }
+    var body = {
+        name: indexName,
+        config: config
+    };
 
     var options = {
         uri: this.serviceRoot.node_index,
         Accept: 'application/json',
-        json: config
+        json: body
     };
 
     request.post(options, function(err, resp, body) {
@@ -650,7 +654,7 @@ neo4jSimple.prototype.createNodeIndex = function(indexName, config, cb) {
             return;
         }
 
-        cb(null, indexName, config);
+        cb(null, indexName, config, body);
     });
 };
 
@@ -725,7 +729,7 @@ neo4jSimple.prototype.addNodeToIndex = function(indexName, nodeId, key, value, c
         return;
     }
 
-    if (typeof nodeid !== 'number') {
+    if (typeof nodeId !== 'number') {
         cb('nodeId must be a number');
         return;
     }
@@ -735,13 +739,13 @@ neo4jSimple.prototype.addNodeToIndex = function(indexName, nodeId, key, value, c
         return;
     }
 
-    if (value !== undefined) {
+    if (value === undefined) {
         cb('value must not be undefined');
         return;
     }
 
     if (typeof cb !== 'function') {
-        cb('Callback must be a function');
+        cb('callback must be a function');
         return;
     }
 
@@ -752,10 +756,12 @@ neo4jSimple.prototype.addNodeToIndex = function(indexName, nodeId, key, value, c
     };
 
     var options = {
-        uri: this.serviceRoot.node_index,
+        uri: this.serviceRoot.node_index+'/favorites',
         Accept: 'application/json',
         json: config
     };
+
+    var self = this;
 
     request.post(options, function(err, resp, body) {
         if (err) {
@@ -764,7 +770,7 @@ neo4jSimple.prototype.addNodeToIndex = function(indexName, nodeId, key, value, c
         }
 
         if (resp.statusCode !== 201) {
-            cb('Post failed with '+resp.statusCode, resp.statusCode);
+            cb('addNodeToIndex: Post failed with '+resp.statusCode, resp.statusCode);
             return;
         }
 
