@@ -1,6 +1,6 @@
 {
     "name" : "neo4jSimple",
-    "version" : "0.0.1",
+    "version" : "0.0.2",
     "description" : "A simple API for ne04J's REST API.",
     "tags" : ["REST", "API", "db", "graph"],
     "author" : "Edmond Meinfelder <edmond.meinfelder@gmail.com>",
@@ -14,9 +14,9 @@
         "type" : "MIT",
         "url" : "https://github.com/edmondmeinfelder/neo4jSimple/raw/master/LICENSE"
     }],
-    "main" : "./neo4jSimple.js",
-    "scripts" : {"test" : "node ./test.js"},
-    "engines" : { "node" : ">=v0.5.0" },
+    "main" : "./lib/neo4jSimple.js",
+    "scripts" : {"test" : "node ./test/test.js"},
+    "engines" : { "node" : ">=v0.6.0" },
     "dependencies" : {
         "request" : "2.9.153"
     },
