@@ -1,6 +1,6 @@
 {
     "name" : "neo4jSimple",
-    "version" : "0.0.2",
+    "version" : "0.0.3",
     "description" : "A simple API for ne04J's REST API.",
     "tags" : ["REST", "API", "db", "graph"],
     "author" : "Edmond Meinfelder <edmond.meinfelder@gmail.com>",
