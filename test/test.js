@@ -5,7 +5,7 @@
  *
  * @author <a href="mailto:edmond.meinfelder@gmail.com">Edmond Meinfelder</a>
  */
-var neo4jSimple = require('./neo4jSimple.js').neo4jSimple;
+var neo4jSimple = require('../lib/neo4jSimple.js').neo4jSimple;
 var async = require('async');
 var assert = require('assert');
 var util = require('util');
